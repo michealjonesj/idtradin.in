@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2B Ordering & Loyalty Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-radius: 8px;
+            --box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --box-shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--gray-50);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Touch-friendly tap targets */
+        button, a, input[type="checkbox"] {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Better tap highlighting */
+        * {
+            -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--gray-600);
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            min-height: 44px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Dashboard */
+        .dashboard-header {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--gray-200);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--gray-100);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-delivered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Product Row for Order Form */
+        .product-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+
+        .product-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .product-row .btn-danger {
+            padding: 0.75rem 1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        /* Notifications */
+        .notifications {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            background: var(--gray-50);
+            border-left: 4px solid var(--warning-color);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .notification-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .notification-item.reward {
+            border-left-color: var(--secondary-color);
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filters .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 0;
+        }
+
+        /* About & Contact Pages */
+        .content-page {
+            background: white;
+            padding: 3rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .content-page h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .content-page p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        /* Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: var(--box-shadow);
+                gap: 0.5rem;
+            }
+
+            .nav-links li {
+                width: 100%;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 0.75rem;
+                text-align: center;
+            }
+
+            .nav-links .btn {
+                width: 100%;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+                line-height: 1.2;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .product-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .product-row .btn-danger {
+                width: 100%;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filters .form-group {
+                min-width: 100%;
+            }
+
+            /* Mobile-friendly table */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 0.85rem;
+                min-width: 600px;
+            }
+
+            th, td {
+                padding: 0.5rem;
+                white-space: nowrap;
+            }
+
+            .btn-small {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            /* Modal adjustments */
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+                max-height: 90vh;
+                padding: 1.5rem;
+            }
+
+            .modal-header h3 {
+                font-size: 1.25rem;
+            }
+
+            /* Form containers */
+            .form-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .content-page {
+                padding: 1.5rem;
+            }
+
+            /* Dashboard header */
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+
+            .dashboard-header h2 {
+                font-size: 1.5rem;
+            }
+
+            /* Progress container */
+            .progress-container {
+                padding: 1.5rem;
+            }
+
+            .progress-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .progress-bar {
+                height: 25px;
+            }
+
+            .progress-fill {
+                font-size: 0.85rem;
+                padding-right: 0.5rem;
+            }
+
+            /* Notifications */
+            .notifications {
+                padding: 1rem;
+            }
+
+            .notification-item {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            /* Action buttons */
+            .dashboard-header .btn,
+            .filters ~ div .btn,
+            div[style*="display: flex"] .btn {
+                margin: 0.5rem 0 !important;
+            }
+
+            div[style*="display: flex; gap: 1rem"] {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+
+            /* Stat cards */
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            /* Invoice details */
+            .invoice-details {
+                padding: 1rem;
+            }
+
+            .invoice-item {
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: flex-start;
+            }
+
+            .invoice-total {
+                font-size: 1.1rem;
+            }
+
+            /* Product cards */
+            .product-card {
+                margin-bottom: 1rem;
+            }
+
+            .product-image {
+                height: 150px;
+                font-size: 2.5rem;
+            }
+
+            .product-info {
+                padding: 1rem;
+            }
+
+            .product-name {
+                font-size: 1.1rem;
+            }
+
+            /* Logo size */
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            /* Page headings */
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
+            }
+
+            /* Milestone container */
+            #milestonesContainer > div {
+                padding: 1rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero p {
+                font-size: 0.95rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+            }
+
+            .product-image {
+                height: 120px;
+                font-size: 2rem;
+            }
+
+            .modal-content {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.4rem;
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.5rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .invoice-details {
+            background: var(--gray-50);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+        }
+
+        .invoice-details h4 {
+            margin-bottom: 1rem;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .invoice-total {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--gray-300);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo" onclick="showPage('home')">B2B Platform</a>
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" onclick="showPage('home')">Home</a></li>
+                <li><a href="#" onclick="showPage('products')">Products</a></li>
+                <li><a href="#" onclick="showPage('about')">About Us</a></li>
+                <li><a href="#" onclick="showPage('contact')">Contact</a></li>
+                <li><a href="#" class="btn btn-primary" onclick="showPage('partner-login')">Partner Login</a></li>
+                <li><a href="#" class="btn btn-secondary btn-small" onclick="showPage('admin-login')">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HOME PAGE -->
+    <div id="home" class="page-section active">
+        <div class="hero">
+            <div class="container">
+                <h1>Professional Partner Program</h1>
+                <p>Empowering Electricians, Plumbers & Contractors with Quality Products and Rewards</p>
+                <a href="#" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;" onclick="showPage('partner-login')">Join Our Partner Network</a>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h2 style="text-align: center; margin: 3rem 0 2rem;">Why Partner With Us?</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Quality Products</h3>
+                    <p>Access to premium materials and equipment from trusted brands</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Easy Ordering</h3>
+                    <p>Simple online platform for quick order placement and tracking</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Rewards Program</h3>
+                    <p>Earn valuable rewards and benefits with every order</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Dedicated Support</h3>
+                    <p>Professional assistance for all your business needs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCTS PAGE -->
+    <div id="products" class="page-section">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem;">Our Product Range</h2>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT PAGE -->
+    <div id="about" class="page-section">
+        <div class="container">
+            <div class="content-page">
+                <h2>About Us</h2>
+                <p>We are a leading supplier of quality electrical, plumbing, and construction materials, dedicated to supporting professional contractors and tradespeople across the region.</p>
+                <p>With over 20 years of industry experience, we understand the unique challenges faced by professionals in the field. Our mission is to provide not just products, but comprehensive solutions that help our partners succeed.</p>
+                <p>Our commitment extends beyond just supply – we've developed a partner program that rewards loyalty and supports the growth of businesses that grow with us.</p>
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Our Values</h3>
+                <ul style="margin-left: 2rem; line-height: 2;">
+                    <li>Quality products from trusted manufacturers</li>
+                    <li>Reliable service and timely delivery</li>
+                    <li>Competitive pricing for our partners</li>
+                    <li>Continuous support and relationship building</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT PAGE -->
+    <div id="contact" class="page-section">
+        <div class="container">
+            <div class="content-page">
+                <h2>Contact Us</h2>
+                <p>We'd love to hear from you! Whether you have questions about our products, want to learn more about the partner program, or need support, please reach out.</p>
+                
+                <div style="margin: 2rem 0;">
+                    <h3 style="margin-bottom: 1rem;">Get In Touch</h3>
+                    <p><strong>Phone:</strong> +91 98765 43210</p>
+                    <p><strong>Email:</strong> info@b2bplatform.com</p>
+                    <p><strong>Address:</strong> 123 Business Park, Industrial Area, City - 110001</p>
+                </div>
+
+                <h3 style="margin-bottom: 1rem;">Send Us a Message</h3>
+                <form onsubmit="handleContactSubmit(event)">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea class="form-control" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PARTNER LOGIN -->
+    <div id="partner-login" class="page-section">
+        <div class="container">
+            <div class="form-container">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Partner Login</h2>
+                <form onsubmit="handlePartnerLogin(event)">
+                    <div class="form-group">
+                        <label>Email / Username</label>
+                        <input type="text" class="form-control" id="partnerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-control" id="partnerPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                    <p style="text-align: center; margin-top: 1rem;">
+                        <a href="#" onclick="handleForgotPassword()" style="color: var(--primary-color);">Forgot Password?</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PARTNER PORTAL - DASHBOARD -->
+    <div id="partner-dashboard" class="page-section">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2>Welcome back, <span id="partnerName">Partner</span>!</h2>
+                <p style="color: var(--text-secondary);">Manage your orders and track your rewards</p>
+                <button class="btn btn-danger btn-small" onclick="logout()" style="margin-top: 1rem;">Logout</button>
+            </div>
+
+            <!-- Rewards Progress -->
+            <div class="progress-container">
+                <h3 style="margin-bottom: 1rem;">Rewards Progress</h3>
+                <div class="progress-header">
+                    <span><strong>Current Total:</strong> ₹<span id="currentTotal">75000</span></span>
+                    <span><strong>Next Milestone:</strong> ₹<span id="nextMilestone">100000</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 75%;">75%</div>
+                </div>
+                <p style="margin-top: 1rem; color: var(--text-secondary);">You're ₹<span id="remaining">25000</span> away from your next reward!</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="stat-value">24</div>
+                </div>
+                <div class="stat-card">
+                    <h3>YTD Spend</h3>
+                    <div class="stat-value">₹75,000</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Orders</h3>
+                    <div class="stat-value">3</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 2rem 0;">
+                <button class="btn btn-primary" onclick="showPage('new-order')" style="padding: 1rem 3rem; font-size: 1.1rem;">Place a New Order</button>
+                <button class="btn btn-secondary" onclick="showPage('order-history')" style="padding: 1rem 3rem; font-size: 1.1rem; margin-left: 1rem;">View Order History</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW ORDER FORM -->
+    <div id="new-order" class="page-section">
+        <div class="container">
+            <div style="background: white; padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                <h2 style="margin-bottom: 2rem;">Place New Order</h2>
+                <form onsubmit="handleNewOrder(event)">
+                    <div class="form-group">
+                        <label>Project Site Address</label>
+                        <textarea class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Order Description / Notes</label>
+                        <textarea class="form-control" required></textarea>
+                    </div>
+                    
+                    <h3 style="margin: 2rem 0 1rem;">Products</h3>
+                    <div id="productRows">
+                        <div class="product-row">
+                            <div class="form-group">
+                                <label>Product</label>
+                                <select class="form-control" required>
+                                    <option value="">Select Product</option>
+                                    <option value="1">Electrical Cables - 100m</option>
+                                    <option value="2">PVC Pipes - 6m</option>
+                                    <option value="3">Circuit Breakers</option>
+                                    <option value="4">LED Fixtures</option>
+                                    <option value="5">Copper Fittings</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" class="form-control" min="1" value="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="addProductRow()">+ Add Product</button>
+                    
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary">Submit Order</button>
+                        <button type="button" class="btn btn-secondary" onclick="showPage('partner-dashboard')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDER HISTORY -->
+    <div id="order-history" class="page-section">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem;">Order History & Invoices</h2>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Site Address</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderHistoryTable">
+                        <tr>
+                            <td>#ORD-001</td>
+                            <td>Oct 15, 2025</td>
+                            <td>123 Main St, Building A</td>
+                            <td><span class="status-badge status-delivered">Delivered</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewOrderDetails('ORD-001')">View Details</button></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-002</td>
+                            <td>Oct 20, 2025</td>
+                            <td>456 Oak Ave, Site B</td>
+                            <td><span class="status-badge status-processing">Processing</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewOrderDetails('ORD-002')">View Details</button></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-003</td>
+                            <td>Oct 25, 2025</td>
+                            <td>789 Pine Rd, Project C</td>
+                            <td><span class="status-badge status-new">New</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewOrderDetails('ORD-003')">View Details</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="showPage('partner-dashboard')">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN -->
+    <div id="admin-login" class="page-section">
+        <div class="container">
+            <div class="form-container">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Admin Login</h2>
+                <form onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="admin-dashboard" class="page-section">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2>Admin Dashboard</h2>
+                <p style="color: var(--text-secondary);">Manage your business operations</p>
+                <button class="btn btn-danger btn-small" onclick="logout()" style="margin-top: 1rem;">Logout</button>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>New Orders</h3>
+                    <div class="stat-value">8</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Partners</h3>
+                    <div class="stat-value">45</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value">₹34.5L</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Invoices</h3>
+                    <div class="stat-value">12</div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="notifications">
+                <h3 style="margin-bottom: 1rem;">Recent Notifications</h3>
+                <div class="notification-item">
+                    <strong>New Order Received</strong>
+                    <p>Order #ORD-105 from ABC Electricals - ₹25,000</p>
+                    <small style="color: var(--text-secondary);">2 hours ago</small>
+                </div>
+                <div class="notification-item reward">
+                    <strong>🎉 Milestone Achieved!</strong>
+                    <p>Partner "XYZ Contractors" has reached the ₹1,00,000 milestone!</p>
+                    <small style="color: var(--text-secondary);">5 hours ago</small>
+                </div>
+                <div class="notification-item">
+                    <strong>New Order Received</strong>
+                    <p>Order #ORD-104 from DEF Plumbing - ₹18,500</p>
+                    <small style="color: var(--text-secondary);">Yesterday</small>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;">
+                <button class="btn btn-primary" onclick="showPage('admin-orders')">Manage Orders</button>
+                <button class="btn btn-primary" onclick="showPage('admin-partners')">Manage Partners</button>
+                <button class="btn btn-primary" onclick="showPage('admin-products')">Manage Products</button>
+                <button class="btn btn-primary" onclick="showPage('admin-rewards')">Rewards Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN - ORDER MANAGEMENT -->
+    <div id="admin-orders" class="page-section">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem;">Order Management</h2>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <div class="form-group">
+                    <label>Filter by Partner</label>
+                    <select class="form-control">
+                        <option value="">All Partners</option>
+                        <option value="1">ABC Electricals</option>
+                        <option value="2">XYZ Contractors</option>
+                        <option value="3">DEF Plumbing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Filter by Status</label>
+                    <select class="form-control">
+                        <option value="">All Status</option>
+                        <option value="new">New</option>
+                        <option value="processing">Processing</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date From</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Date To</label>
+                    <input type="date" class="form-control">
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Partner</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#ORD-105</td>
+                            <td>ABC Electricals</td>
+                            <td>Nov 07, 2025</td>
+                            <td>₹25,000</td>
+                            <td><span class="status-badge status-new">New</span></td>
+                            <td><span class="status-badge" style="background: #fee2e2; color: #991b1b;">Unpaid</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewAdminOrderDetails('ORD-105')">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-104</td>
+                            <td>DEF Plumbing</td>
+                            <td>Nov 06, 2025</td>
+                            <td>₹18,500</td>
+                            <td><span class="status-badge status-processing">Processing</span></td>
+                            <td><span class="status-badge" style="background: #fee2e2; color: #991b1b;">Unpaid</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewAdminOrderDetails('ORD-104')">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-103</td>
+                            <td>XYZ Contractors</td>
+                            <td>Nov 05, 2025</td>
+                            <td>₹42,000</td>
+                            <td><span class="status-badge status-delivered">Delivered</span></td>
+                            <td><span class="status-badge" style="background: #d1fae5; color: #065f46;">Paid</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewAdminOrderDetails('ORD-103')">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-102</td>
+                            <td>ABC Electricals</td>
+                            <td>Nov 04, 2025</td>
+                            <td>₹15,750</td>
+                            <td><span class="status-badge status-delivered">Delivered</span></td>
+                            <td><span class="status-badge" style="background: #d1fae5; color: #065f46;">Paid</span></td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewAdminOrderDetails('ORD-102')">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="showPage('admin-dashboard')">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN - PARTNER MANAGEMENT -->
+    <div id="admin-partners" class="page-section">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Partner Management</h2>
+                <button class="btn btn-primary" onclick="showAddPartnerForm()">+ Add New Partner</button>
+            </div>
+
+            <!-- Partners Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Total Spend</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ABC Electricals</td>
+                            <td>John Doe</td>
+                            <td>john@abcelectricals.com</td>
+                            <td>+91 98765 43210</td>
+                            <td>₹75,000</td>
+                            <td>
+                                <button class="btn btn-primary btn-small" onclick="editPartner('1')">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deletePartner('1')">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>XYZ Contractors</td>
+                            <td>Jane Smith</td>
+                            <td>jane@xyzcontractors.com</td>
+                            <td>+91 98765 43211</td>
+                            <td>₹1,20,000</td>
+                            <td>
+                                <button class="btn btn-primary btn-small" onclick="editPartner('2')">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deletePartner('2')">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>DEF Plumbing</td>
+                            <td>Robert Brown</td>
+                            <td>robert@defplumbing.com</td>
+                            <td>+91 98765 43212</td>
+                            <td>₹45,000</td>
+                            <td>
+                                <button class="btn btn-primary btn-small" onclick="editPartner('3')">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deletePartner('3')">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="showPage('admin-dashboard')">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN - PRODUCT MANAGEMENT -->
+    <div id="admin-products" class="page-section">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Product Management</h2>
+                <button class="btn btn-primary" onclick="showAddProductForm()">+ Add New Product</button>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-image">🔌</div>
+                    <div class="product-info">
+                        <div class="product-name">Electrical Cables - 100m</div>
+                        <div class="product-description">High-quality copper cables for residential and commercial use</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary btn-small" onclick="editProduct('1')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteProduct('1')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">🚰</div>
+                    <div class="product-info">
+                        <div class="product-name">PVC Pipes - 6m</div>
+                        <div class="product-description">Durable PVC pipes for plumbing installations</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary btn-small" onclick="editProduct('2')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteProduct('2')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">⚡</div>
+                    <div class="product-info">
+                        <div class="product-name">Circuit Breakers</div>
+                        <div class="product-description">Safety circuit breakers for electrical panels</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary btn-small" onclick="editProduct('3')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteProduct('3')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">💡</div>
+                    <div class="product-info">
+                        <div class="product-name">LED Fixtures</div>
+                        <div class="product-description">Energy-efficient LED lighting solutions</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary btn-small" onclick="editProduct('4')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteProduct('4')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="showPage('admin-dashboard')">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN - REWARDS SETTINGS -->
+    <div id="admin-rewards" class="page-section">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem;">Rewards Program Settings</h2>
+
+            <div style="background: white; padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1.5rem;">Configure Milestones</h3>
+                
+                <div id="milestonesContainer">
+                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Milestone Amount (₹)</label>
+                            <input type="number" class="form-control" value="100000">
+                        </div>
+                        <div class="form-group">
+                            <label>Reward Description</label>
+                            <textarea class="form-control">Premium Tool Kit</textarea>
+                        </div>
+                        <button class="btn btn-danger btn-small">Remove Milestone</button>
+                    </div>
+
+                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Milestone Amount (₹)</label>
+                            <input type="number" class="form-control" value="250000">
+                        </div>
+                        <div class="form-group">
+                            <label>Reward Description</label>
+                            <textarea class="form-control">Professional Equipment Package + ₹5,000 Gift Voucher</textarea>
+                        </div>
+                        <button class="btn btn-danger btn-small">Remove Milestone</button>
+                    </div>
+
+                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Milestone Amount (₹)</label>
+                            <input type="number" class="form-control" value="500000">
+                        </div>
+                        <div class="form-group">
+                            <label>Reward Description</label>
+                            <textarea class="form-control">Elite Partner Status + ₹15,000 Gift Voucher + Special Discount Card</textarea>
+                        </div>
+                        <button class="btn btn-danger btn-small">Remove Milestone</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" onclick="addMilestone()">+ Add New Milestone</button>
+                <button class="btn btn-primary" style="margin-left: 1rem;">Save Changes</button>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="showPage('admin-dashboard')">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- Order Details Modal (Partner) -->
+    <div id="orderDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <button class="modal-close" onclick="closeModal('orderDetailsModal')">&times;</button>
+            </div>
+            <div id="orderDetailsContent">
+                <p><strong>Order ID:</strong> #ORD-001</p>
+                <p><strong>Date:</strong> Oct 15, 2025</p>
+                <p><strong>Status:</strong> <span class="status-badge status-delivered">Delivered</span></p>
+                <p><strong>Site Address:</strong> 123 Main St, Building A, Floor 3</p>
+                <p><strong>Description:</strong> Electrical installation for new office space</p>
+                
+                <div class="invoice-details">
+                    <h4>Invoice</h4>
+                    <div class="invoice-item">
+                        <span>Electrical Cables - 100m</span>
+                        <span>Qty: 5 × ₹2,000 = ₹10,000</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>Circuit Breakers</span>
+                        <span>Qty: 10 × ₹500 = ₹5,000</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>LED Fixtures</span>
+                        <span>Qty: 8 × ₹1,250 = ₹10,000</span>
+                    </div>
+                    <div class="invoice-total">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Total Amount:</span>
+                            <span>₹25,000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Download Invoice PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Order Details Modal -->
+    <div id="adminOrderDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Order Management</h3>
+                <button class="modal-close" onclick="closeModal('adminOrderDetailsModal')">&times;</button>
+            </div>
+            <div id="adminOrderDetailsContent">
+                <p><strong>Order ID:</strong> #ORD-105</p>
+                <p><strong>Partner:</strong> ABC Electricals</p>
+                <p><strong>Date:</strong> Nov 07, 2025</p>
+                <p><strong>Site Address:</strong> 456 Oak Avenue, Construction Site B</p>
+                <p><strong>Description:</strong> Plumbing materials for residential complex</p>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label>Order Status</label>
+                    <select class="form-control" id="adminOrderStatus">
+                        <option value="new" selected>New</option>
+                        <option value="processing">Processing</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="invoice-details">
+                    <h4>Invoice Details</h4>
+                    <div class="invoice-item">
+                        <span>PVC Pipes - 6m</span>
+                        <span>Qty: 20 × ₹800 = ₹16,000</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>Copper Fittings</span>
+                        <span>Qty: 30 × ₹300 = ₹9,000</span>
+                    </div>
+                    <div class="invoice-total">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Total Amount:</span>
+                            <span>₹25,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="invoicePaid" style="width: auto;">
+                        Mark Invoice as Paid
+                    </label>
+                    <small style="color: var(--text-secondary);">Only paid invoices count towards rewards program</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-primary" onclick="saveOrderChanges()">Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeModal('adminOrderDetailsModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Partner Modal -->
+    <div id="partnerFormModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="partnerFormTitle">Add New Partner</h3>
+                <button class="modal-close" onclick="closeModal('partnerFormModal')">&times;</button>
+            </div>
+            <form onsubmit="handlePartnerFormSubmit(event)">
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Person</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Initial Password</label>
+                    <input type="password" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">Save Partner</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('partnerFormModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="productFormModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productFormTitle">Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('productFormModal')">&times;</button>
+            </div>
+            <form onsubmit="handleProductFormSubmit(event)">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Product Icon (Emoji)</label>
+                    <input type="text" class="form-control" placeholder="e.g., 🔌" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('productFormModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample product data
+        const products = [
+            { id: 1, name: 'Electrical Cables - 100m', description: 'High-quality copper cables for residential and commercial use', icon: '🔌' },
+            { id: 2, name: 'PVC Pipes - 6m', description: 'Durable PVC pipes for plumbing installations', icon: '🚰' },
+            { id: 3, name: 'Circuit Breakers', description: 'Safety circuit breakers for electrical panels', icon: '⚡' },
+            { id: 4, name: 'LED Fixtures', description: 'Energy-efficient LED lighting solutions', icon: '💡' },
+            { id: 5, name: 'Copper Fittings', description: 'Premium copper fittings for plumbing systems', icon: '🔧' },
+            { id: 6, name: 'Junction Boxes', description: 'Weatherproof junction boxes for electrical connections', icon: '📦' }
+        ];
+
+        // Load products on page load
+        window.onload = function() {
+            loadProducts();
+        };
+
+        function loadProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-image">${product.icon}</div>
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-description">${product.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Navigation functions
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+            
+            // Close mobile menu if open
+            document.getElementById('navLinks').classList.remove('active');
+        }
+
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Authentication functions
+        function handlePartnerLogin(e) {
+            e.preventDefault();
+            alert('Login successful! Welcome to the Partner Portal.');
+            showPage('partner-dashboard');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            alert('Admin login successful!');
+            showPage('admin-dashboard');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                showPage('home');
+                alert('You have been logged out successfully.');
+            }
+        }
+
+        function handleForgotPassword() {
+            const email = prompt('Enter your registered email address:');
+            if (email) {
+                alert('Password reset link has been sent to ' + email);
+            }
+        }
+
+        // Contact form
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            e.target.reset();
+        }
+
+        // Order form functions
+        function addProductRow() {
+            const container = document.getElementById('productRows');
+            const newRow = document.createElement('div');
+            newRow.className = 'product-row';
+            newRow.innerHTML = `
+                <div class="form-group">
+                    <label>Product</label>
+                    <select class="form-control" required>
+                        <option value="">Select Product</option>
+                        <option value="1">Electrical Cables - 100m</option>
+                        <option value="2">PVC Pipes - 6m</option>
+                        <option value="3">Circuit Breakers</option>
+                        <option value="4">LED Fixtures</option>
+                        <option value="5">Copper Fittings</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" class="form-control" min="1" value="1" required>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeProductRow(button) {
+            button.parentElement.remove();
+        }
+
+        function handleNewOrder(e) {
+            e.preventDefault();
+            alert('Order submitted successfully! You will receive a confirmation email shortly.');
+            showPage('partner-dashboard');
+        }
+
+        // Modal functions
+        function viewOrderDetails(orderId) {
+            document.getElementById('orderDetailsModal').classList.add('active');
+        }
+
+        function viewAdminOrderDetails(orderId) {
+            document.getElementById('adminOrderDetailsModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function saveOrderChanges() {
+            alert('Order changes saved successfully!');
+            closeModal('adminOrderDetailsModal');
+        }
+
+        // Partner management functions
+        function showAddPartnerForm() {
+            document.getElementById('partnerFormTitle').textContent = 'Add New Partner';
+            document.getElementById('partnerFormModal').classList.add('active');
+        }
+
+        function editPartner(id) {
+            document.getElementById('partnerFormTitle').textContent = 'Edit Partner';
+            document.getElementById('partnerFormModal').classList.add('active');
+        }
+
+        function deletePartner(id) {
+            if (confirm('Are you sure you want to delete this partner? This action cannot be undone.')) {
+                alert('Partner deleted successfully.');
+            }
+        }
+
+        function handlePartnerFormSubmit(e) {
+            e.preventDefault();
+            alert('Partner saved successfully!');
+            closeModal('partnerFormModal');
+            e.target.reset();
+        }
+
+        // Product management functions
+        function showAddProductForm() {
+            document.getElementById('productFormTitle').textContent = 'Add New Product';
+            document.getElementById('productFormModal').classList.add('active');
+        }
+
+        function editProduct(id) {
+            document.getElementById('productFormTitle').textContent = 'Edit Product';
+            document.getElementById('productFormModal').classList.add('active');
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                alert('Product deleted successfully.');
+            }
+        }
+
+        function handleProductFormSubmit(e) {
+            e.preventDefault();
+            alert('Product saved successfully!');
+            closeModal('productFormModal');
+            e.target.reset();
+            loadProducts();
+        }
+
+        // Milestone management
+        function addMilestone() {
+            const container = document.getElementById('milestonesContainer');
+            const newMilestone = document.createElement('div');
+            newMilestone.style.cssText = 'background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 1rem;';
+            newMilestone.innerHTML = `
+                <div class="form-group">
+                    <label>Milestone Amount (₹)</label>
+                    <input type="number" class="form-control" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label>Reward Description</label>
+                    <textarea class="form-control" placeholder="Describe the reward"></textarea>
+                </div>
+                <button class="btn btn-danger btn-small" onclick="removeMilestone(this)">Remove Milestone</button>
+            `;
+            container.appendChild(newMilestone);
+        }
+
+        function removeMilestone(button) {
+            if (confirm('Are you sure you want to remove this milestone?')) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Rewards progress calculation
+        function updateRewardsProgress() {
+            const current = parseFloat(document.getElementById('currentTotal').textContent);
+            const milestone = parseFloat(document.getElementById('nextMilestone').textContent);
+            const percentage = (current / milestone * 100).toFixed(0);
+            const remaining = milestone - current;
+            
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressFill').textContent = percentage + '%';
+            document.getElementById('remaining').textContent = remaining.toLocaleString('en-IN');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRewardsProgress();
+        });
+    </script>
+</body>
+</html>
+            
