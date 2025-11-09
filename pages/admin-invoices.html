@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Management - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Admin Panel</a></div>
+            <ul>
+                <li><a href="admin-dashboard.html">Dashboard</a></li>
+                <li><a href="admin-orders.html">Orders</a></li>
+                <li><a href="admin-partners.html">Partners</a></li>
+                <li><a href="admin-rewards.html">Rewards</a></li>
+                <li><a href="admin-invoices.html">Invoices</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Invoice Management</h1>
+        
+        <div class="card" style="margin-bottom: 1rem;">
+            <div class="d-flex gap-2">
+                <select id="statusFilter" onchange="loadInvoices()" style="padding: 0.5rem; min-width: 200px;">
+                    <option value="">All Status</option>
+                    <option value="true">Paid</option>
+                    <option value="false">Unpaid</option>
+                </select>
+                <select id="partnerFilter" onchange="loadInvoices()" style="padding: 0.5rem; min-width: 200px;">
+                    <option value="">All Partners</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Partner</th>
+                        <th>Date</th>
+                        <th>Order ID</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTable">
+                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!requireAuth('admin')) return;
+
+        function loadPartners() {
+            const partners = localStorageService.getUsers().filter(u => u.role === 'partner');
+            const select = document.getElementById('partnerFilter');
+            partners.forEach(partner => {
+                const option = document.createElement('option');
+                option.value = partner._id;
+                option.textContent = partner.companyName;
+                select.appendChild(option);
+            });
+        }
+
+        function loadInvoices() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const partnerFilter = document.getElementById('partnerFilter').value;
+            
+            let invoices = localStorageService.getInvoices();
+            
+            if (statusFilter !== '') {
+                invoices = invoices.filter(i => i.isPaid === (statusFilter === 'true'));
+            }
+            if (partnerFilter) {
+                invoices = invoices.filter(i => i.partnerId === partnerFilter);
+            }
+
+            invoices = invoices.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const tbody = document.getElementById('invoicesTable');
+            
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No invoices found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(invoice => {
+                const partner = localStorageService.getUser(invoice.partnerId);
+                const order = localStorageService.getOrder(invoice.orderId);
+
+                return `
+                    <tr>
+                        <td>${invoice.invoiceNumber}</td>
+                        <td>${partner ? partner.companyName : 'N/A'}</td>
+                        <td>${new Date(invoice.createdAt).toLocaleDateString()}</td>
+                        <td>${order ? order._id.slice(-8) : 'N/A'}</td>
+                        <td>₹${invoice.totalAmount.toLocaleString('en-IN')}</td>
+                        <td><span class="badge ${invoice.isPaid ? 'badge-success' : 'badge-warning'}">${invoice.isPaid ? 'Paid' : 'Unpaid'}</span></td>
+                        <td>
+                            ${!invoice.isPaid ? `
+                                <button class="btn btn-success" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" 
+                                        onclick="markAsPaid('${invoice._id}')">Mark as Paid</button>
+                            ` : `
+                                <span style="color: #666; font-size: 0.875rem;">
+                                    Paid: ${new Date(invoice.paidDate).toLocaleDateString()}
+                                </span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function markAsPaid(invoiceId) {
+            if (!confirm('Mark this invoice as paid?')) return;
+
+            const invoice = localStorageService.getInvoice(invoiceId);
+            localStorageService.updateInvoice(invoiceId, {
+                isPaid: true,
+                paidDate: new Date().toISOString()
+            });
+
+            // Recalculate rewards
+            recalculateRewards(invoice.partnerId);
+            checkMilestones(invoice.partnerId);
+
+            loadInvoices();
+        }
+
+        function recalculateRewards(partnerId) {
+            const invoices = localStorageService.getInvoicesByPartner(partnerId);
+            const paidInvoices = invoices.filter(i => i.isPaid);
+            const totalSpend = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+            localStorageService.updateUser(partnerId, { totalSpend });
+        }
+
+        function checkMilestones(partnerId) {
+            const partner = localStorageService.getUser(partnerId);
+            const totalSpend = partner.totalSpend || 0;
+            const milestones = localStorageService.getMilestones().filter(m => m.isActive);
+
+            milestones.forEach(milestone => {
+                if (totalSpend >= milestone.milestoneAmount) {
+                    const notifications = localStorageService.getNotifications();
+                    const exists = notifications.some(n =>
+                        n.type === 'reward_milestone' &&
+                        n.partnerId === partnerId &&
+                        n.message.includes(`₹${milestone.milestoneAmount.toLocaleString('en-IN')}`)
+                    );
+
+                    if (!exists) {
+                        localStorageService.addNotification({
+                            type: 'reward_milestone',
+                            message: `Partner ${partner.companyName} has reached the ₹${milestone.milestoneAmount.toLocaleString('en-IN')} milestone! Reward: ${milestone.rewardDescription}`,
+                            partnerId: partnerId,
+                            isRead: false
+                        });
+                    }
+                }
+            });
+        }
+
+        loadPartners();
+        loadInvoices();
+    </script>
+</body>
+</html>
+

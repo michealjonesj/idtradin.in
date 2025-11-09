@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Dashboard - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Partner Portal</a></div>
+            <ul>
+                <li><a href="partner-dashboard.html">Dashboard</a></li>
+                <li><a href="partner-order-form.html">New Order</a></li>
+                <li><a href="partner-orders.html">Order History</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 id="welcomeMessage">Welcome!</h1>
+        <p style="color: #666; margin-bottom: 2rem;">Manage your orders and track your rewards progress</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>Rewards Progress</h3>
+                <div id="rewardsProgress">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="card">
+                    <h4 style="color: #666; margin-bottom: 0.5rem;">Total Orders</h4>
+                    <h2 id="totalOrders">0</h2>
+                </div>
+                <div class="card" style="margin-top: 1rem;">
+                    <h4 style="color: #666; margin-bottom: 0.5rem;">YTD Spend</h4>
+                    <h2 id="ytdSpend">₹0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+            <h3>Quick Actions</h3>
+            <a href="partner-order-form.html" class="btn btn-primary">Place a New Order</a>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!requireAuth('partner')) return;
+
+        const user = getCurrentUser();
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${user.contactPerson || user.companyName}!`;
+
+        // Load stats
+        function loadStats() {
+            const orders = localStorageService.getOrdersByPartner(user._id);
+            const currentYear = new Date().getFullYear();
+            const ytdOrders = orders.filter(o => new Date(o.createdAt).getFullYear() === currentYear);
+            const ytdSpend = ytdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('ytdSpend').textContent = `₹${ytdSpend.toLocaleString('en-IN')}`;
+        }
+
+        // Load rewards progress
+        function loadRewards() {
+            const partner = localStorageService.getUser(user._id);
+            const totalSpend = partner.totalSpend || 0;
+            const milestones = localStorageService.getMilestones().filter(m => m.isActive);
+            const nextMilestone = milestones
+                .filter(m => m.milestoneAmount > totalSpend)
+                .sort((a, b) => a.milestoneAmount - b.milestoneAmount)[0];
+
+            const progressDiv = document.getElementById('rewardsProgress');
+            
+            if (!nextMilestone) {
+                progressDiv.innerHTML = `
+                    <p>Current Total Spend: ₹${totalSpend.toLocaleString('en-IN')}</p>
+                    <p style="color: #666; margin-top: 0.5rem;">No active milestones configured.</p>
+                `;
+                return;
+            }
+
+            const progress = Math.min((totalSpend / nextMilestone.milestoneAmount) * 100, 100);
+            const remaining = Math.max(nextMilestone.milestoneAmount - totalSpend, 0);
+
+            progressDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.875rem; color: #666;">Progress to Next Milestone</span>
+                    <span style="font-size: 0.875rem; color: #666;">
+                        ₹${totalSpend.toLocaleString('en-IN')} / ₹${nextMilestone.milestoneAmount.toLocaleString('en-IN')}
+                    </span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <p style="font-size: 0.875rem; color: #666; margin-top: 0.5rem;">
+                    ₹${remaining.toLocaleString('en-IN')} remaining to reach: ${nextMilestone.rewardDescription}
+                </p>
+            `;
+        }
+
+        loadStats();
+        loadRewards();
+    </script>
+</body>
+</html>
+

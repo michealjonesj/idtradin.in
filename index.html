@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2B Ordering & Loyalty Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">B2B Platform</div>
+            <ul>
+                <li><a href="index.html">Products</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="login.html" id="loginLink">Partner Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="text-center" style="margin: 2rem 0;">Our Products</h1>
+        <p class="text-center" style="margin-bottom: 2rem; color: #666;">
+            Explore our wide range of products for professionals
+        </p>
+        
+        <div class="grid" id="productsGrid">
+            <div class="loading">Loading products...</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 B2B Ordering & Loyalty Platform. All rights reserved.</p>
+    </footer>
+
+    <script src="js/localStorageService.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Check if user is logged in
+        const user = getCurrentUser();
+        if (user) {
+            const loginLink = document.getElementById('loginLink');
+            if (user.role === 'admin') {
+                loginLink.textContent = 'Admin Panel';
+                loginLink.href = 'pages/admin-dashboard.html';
+            } else {
+                loginLink.textContent = 'Partner Portal';
+                loginLink.href = 'pages/partner-dashboard.html';
+            }
+        }
+
+        // Load products
+        function loadProducts() {
+            const products = localStorageService.getProducts().filter(p => p.isActive);
+            const grid = document.getElementById('productsGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="text-center">No products available at the moment.</div>';
+                return;
+            }
+
+            grid.innerHTML = products.map(product => `
+                <div class="card">
+                    <h3>${product.name}</h3>
+                    <p style="color: #666; margin-top: 0.5rem;">${product.description || 'No description available'}</p>
+                </div>
+            `).join('');
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
+

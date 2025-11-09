@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - B2B Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="index.html" style="color: white; text-decoration: none;">B2B Platform</a></div>
+            <ul>
+                <li><a href="index.html">Products</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="login.html" id="loginLink">Partner Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h1 class="text-center">About Us</h1>
+            
+            <h2 style="margin-top: 2rem;">Our Mission</h2>
+            <p>We are dedicated to providing exceptional products and services to trade professionals across various industries. Our B2B platform connects electricians, plumbers, contractors, and other professionals with high-quality products they need for their projects.</p>
+            
+            <h2 style="margin-top: 2rem;">Partner Program</h2>
+            <p>Our partner program is designed to reward our loyal customers. As you place orders and build your business with us, you'll earn rewards and benefits that help you grow.</p>
+            
+            <h2 style="margin-top: 2rem;">Why Choose Us</h2>
+            <ul style="margin-left: 2rem; margin-top: 1rem;">
+                <li>Wide selection of quality products</li>
+                <li>Competitive pricing for professionals</li>
+                <li>Loyalty rewards program</li>
+                <li>Dedicated support team</li>
+                <li>Easy ordering process</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 B2B Ordering & Loyalty Platform. All rights reserved.</p>
+    </footer>
+
+    <script src="js/localStorageService.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const user = getCurrentUser();
+        if (user) {
+            const loginLink = document.getElementById('loginLink');
+            if (user.role === 'admin') {
+                loginLink.textContent = 'Admin Panel';
+                loginLink.href = 'pages/admin-dashboard.html';
+            } else {
+                loginLink.textContent = 'Partner Portal';
+                loginLink.href = 'pages/partner-dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>
+

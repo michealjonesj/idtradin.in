@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Partner Portal</a></div>
+            <ul>
+                <li><a href="partner-dashboard.html">Dashboard</a></li>
+                <li><a href="partner-order-form.html">New Order</a></li>
+                <li><a href="partner-orders.html">Order History</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Place New Order</h1>
+        
+        <div class="card">
+            <div id="alertMessage"></div>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label for="projectSiteAddress">Project Site Address *</label>
+                    <textarea id="projectSiteAddress" name="projectSiteAddress" rows="2" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Detailed Description / Notes</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+                        <h3>Order Items</h3>
+                        <button type="button" class="btn btn-secondary" onclick="addProductRow()">Add Product</button>
+                    </div>
+                    
+                    <div id="orderItems">
+                        <div class="alert alert-info">Click "Add Product" to add items to your order</div>
+                    </div>
+                    
+                    <div id="orderTotal" style="text-align: right; margin-top: 1rem; font-size: 1.25rem; font-weight: bold; display: none;">
+                        Total: ₹<span id="totalAmount">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2" style="justify-content: flex-end;">
+                    <a href="partner-dashboard.html" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Submit Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!requireAuth('partner')) return;
+
+        const user = getCurrentUser();
+        const products = localStorageService.getProducts().filter(p => p.isActive);
+        let orderItems = [];
+        let itemCounter = 0;
+
+        function addProductRow() {
+            itemCounter++;
+            const itemId = `item_${itemCounter}`;
+            orderItems.push({ id: itemId, productId: '', quantity: 1 });
+            
+            const itemsDiv = document.getElementById('orderItems');
+            if (itemsDiv.querySelector('.alert')) {
+                itemsDiv.innerHTML = '';
+            }
+            
+            const row = document.createElement('div');
+            row.id = itemId;
+            row.className = 'd-flex gap-2 align-center';
+            row.style.marginBottom = '1rem';
+            row.style.padding = '1rem';
+            row.style.border = '1px solid #ddd';
+            row.style.borderRadius = '4px';
+            row.style.backgroundColor = '#f9f9f9';
+            
+            row.innerHTML = `
+                <select class="product-select" style="flex: 2; padding: 0.5rem;" onchange="updateProduct('${itemId}', this.value)">
+                    <option value="">Select Product</option>
+                    ${products.map(p => `<option value="${p._id}">${p.name} - ₹${p.price}</option>`).join('')}
+                </select>
+                <input type="number" class="quantity-input" min="1" value="1" style="width: 100px; padding: 0.5rem;" 
+                       onchange="updateQuantity('${itemId}', this.value)" oninput="calculateTotal()">
+                <span class="item-price" style="width: 120px; text-align: right;">₹0.00</span>
+                <button type="button" class="btn btn-danger" onclick="removeProductRow('${itemId}')" style="padding: 0.5rem 1rem;">Remove</button>
+            `;
+            
+            itemsDiv.appendChild(row);
+            calculateTotal();
+        }
+
+        function updateProduct(itemId, productId) {
+            const item = orderItems.find(i => i.id === itemId);
+            if (item) {
+                item.productId = productId;
+                calculateTotal();
+            }
+        }
+
+        function updateQuantity(itemId, quantity) {
+            const item = orderItems.find(i => i.id === itemId);
+            if (item) {
+                item.quantity = Math.max(1, parseInt(quantity) || 1);
+                calculateTotal();
+            }
+        }
+
+        function removeProductRow(itemId) {
+            orderItems = orderItems.filter(i => i.id !== itemId);
+            document.getElementById(itemId).remove();
+            if (orderItems.length === 0) {
+                document.getElementById('orderItems').innerHTML = '<div class="alert alert-info">Click "Add Product" to add items to your order</div>';
+            }
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            orderItems.forEach(item => {
+                if (item.productId) {
+                    const product = products.find(p => p._id === item.productId);
+                    if (product) {
+                        const itemTotal = product.price * item.quantity;
+                        total += itemTotal;
+                        
+                        const row = document.getElementById(item.id);
+                        if (row) {
+                            const priceSpan = row.querySelector('.item-price');
+                            if (priceSpan) {
+                                priceSpan.textContent = `₹${itemTotal.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const totalDiv = document.getElementById('orderTotal');
+            const totalSpan = document.getElementById('totalAmount');
+            if (total > 0) {
+                totalDiv.style.display = 'block';
+                totalSpan.textContent = total.toFixed(2);
+            } else {
+                totalDiv.style.display = 'none';
+            }
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (orderItems.length === 0) {
+                document.getElementById('alertMessage').innerHTML = '<div class="alert alert-error">Please add at least one product to the order</div>';
+                return;
+            }
+
+            const projectSiteAddress = document.getElementById('projectSiteAddress').value;
+            if (!projectSiteAddress.trim()) {
+                document.getElementById('alertMessage').innerHTML = '<div class="alert alert-error">Please provide project site address</div>';
+                return;
+            }
+
+            // Calculate total
+            let totalAmount = 0;
+            const items = orderItems
+                .filter(item => item.productId)
+                .map(item => {
+                    const product = products.find(p => p._id === item.productId);
+                    const itemTotal = product.price * item.quantity;
+                    totalAmount += itemTotal;
+                    return {
+                        productId: product,
+                        quantity: parseInt(item.quantity),
+                        price: product.price
+                    };
+                });
+
+            // Create order
+            const order = localStorageService.addOrder({
+                partnerId: user._id,
+                projectSiteAddress,
+                description: document.getElementById('description').value,
+                items,
+                status: 'New',
+                totalAmount
+            });
+
+            // Auto-generate invoice
+            const invoiceNumber = `INV-${Date.now()}-${order._id.slice(-6)}`;
+            localStorageService.addInvoice({
+                orderId: order._id,
+                partnerId: user._id,
+                invoiceNumber,
+                totalAmount,
+                isPaid: false
+            });
+
+            // Recalculate rewards
+            recalculateRewards(user._id);
+
+            document.getElementById('alertMessage').innerHTML = '<div class="alert alert-success">Order placed successfully! Redirecting...</div>';
+            setTimeout(() => {
+                window.location.href = 'partner-orders.html';
+            }, 1000);
+        });
+
+        function recalculateRewards(partnerId) {
+            const invoices = localStorageService.getInvoicesByPartner(partnerId);
+            const paidInvoices = invoices.filter(i => i.isPaid);
+            const totalSpend = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+            localStorageService.updateUser(partnerId, { totalSpend });
+            checkMilestones(partnerId);
+        }
+
+        function checkMilestones(partnerId) {
+            const partner = localStorageService.getUser(partnerId);
+            const totalSpend = partner.totalSpend || 0;
+            const milestones = localStorageService.getMilestones().filter(m => m.isActive);
+
+            milestones.forEach(milestone => {
+                if (totalSpend >= milestone.milestoneAmount) {
+                    const notifications = localStorageService.getNotifications();
+                    const exists = notifications.some(n =>
+                        n.type === 'reward_milestone' &&
+                        n.partnerId === partnerId &&
+                        n.message.includes(`₹${milestone.milestoneAmount.toLocaleString('en-IN')}`)
+                    );
+
+                    if (!exists) {
+                        localStorageService.addNotification({
+                            type: 'reward_milestone',
+                            message: `Partner ${partner.companyName} has reached the ₹${milestone.milestoneAmount.toLocaleString('en-IN')} milestone! Reward: ${milestone.rewardDescription}`,
+                            partnerId: partnerId,
+                            isRead: false
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

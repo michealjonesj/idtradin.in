@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards Settings - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Admin Panel</a></div>
+            <ul>
+                <li><a href="admin-dashboard.html">Dashboard</a></li>
+                <li><a href="admin-orders.html">Orders</a></li>
+                <li><a href="admin-partners.html">Partners</a></li>
+                <li><a href="admin-rewards.html">Rewards</a></li>
+                <li><a href="admin-invoices.html">Invoices</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+            <h1>Rewards Milestones</h1>
+            <button class="btn btn-primary" onclick="openMilestoneModal()">Create Milestone</button>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Milestone Amount</th>
+                        <th>Reward Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="milestonesTable">
+                    <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Milestone Modal -->
+    <div id="milestoneModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 8px; min-width: 400px;">
+            <h3 id="modalTitle">Create New Milestone</h3>
+            <div id="alertMessage"></div>
+            <form id="milestoneForm">
+                <div class="form-group">
+                    <label for="milestoneAmount">Milestone Amount (₹) *</label>
+                    <input type="number" id="milestoneAmount" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="rewardDescription">Reward Description *</label>
+                    <textarea id="rewardDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="isActive" checked>
+                        Active
+                    </label>
+                </div>
+                <div class="d-flex gap-2" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeMilestoneModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!requireAuth('admin')) return;
+
+        let editingMilestoneId = null;
+
+        function loadMilestones() {
+            const milestones = localStorageService.getMilestones()
+                .sort((a, b) => a.milestoneAmount - b.milestoneAmount);
+
+            const tbody = document.getElementById('milestonesTable');
+            
+            if (milestones.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No milestones configured. Create one to get started.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = milestones.map(milestone => `
+                <tr>
+                    <td>₹${milestone.milestoneAmount.toLocaleString('en-IN')}</td>
+                    <td>${milestone.rewardDescription}</td>
+                    <td>${milestone.isActive ? '<span class="badge badge-success">Active</span>' : '<span style="color: #666;">Inactive</span>'}</td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; margin-right: 0.5rem;" 
+                                onclick="editMilestone('${milestone._id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" 
+                                onclick="deleteMilestone('${milestone._id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openMilestoneModal(milestoneId = null) {
+            editingMilestoneId = milestoneId;
+            const modal = document.getElementById('milestoneModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('milestoneForm');
+
+            if (milestoneId) {
+                const milestone = localStorageService.getMilestone(milestoneId);
+                title.textContent = 'Edit Milestone';
+                document.getElementById('milestoneAmount').value = milestone.milestoneAmount;
+                document.getElementById('rewardDescription').value = milestone.rewardDescription;
+                document.getElementById('isActive').checked = milestone.isActive;
+            } else {
+                title.textContent = 'Create New Milestone';
+                form.reset();
+                document.getElementById('isActive').checked = true;
+            }
+            modal.style.display = 'block';
+        }
+
+        function closeMilestoneModal() {
+            document.getElementById('milestoneModal').style.display = 'none';
+            editingMilestoneId = null;
+            document.getElementById('alertMessage').innerHTML = '';
+        }
+
+        function editMilestone(milestoneId) {
+            openMilestoneModal(milestoneId);
+        }
+
+        function deleteMilestone(milestoneId) {
+            if (confirm('Are you sure you want to delete this milestone?')) {
+                localStorageService.deleteMilestone(milestoneId);
+                loadMilestones();
+            }
+        }
+
+        document.getElementById('milestoneForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const alertDiv = document.getElementById('alertMessage');
+            
+            const data = {
+                milestoneAmount: parseFloat(document.getElementById('milestoneAmount').value),
+                rewardDescription: document.getElementById('rewardDescription').value,
+                isActive: document.getElementById('isActive').checked
+            };
+
+            if (editingMilestoneId) {
+                localStorageService.updateMilestone(editingMilestoneId, data);
+                alertDiv.innerHTML = '<div class="alert alert-success">Milestone updated successfully!</div>';
+            } else {
+                localStorageService.addMilestone(data);
+                alertDiv.innerHTML = '<div class="alert alert-success">Milestone created successfully!</div>';
+            }
+
+            setTimeout(() => {
+                closeMilestoneModal();
+                loadMilestones();
+            }, 1000);
+        });
+
+        // Close modal on outside click
+        document.getElementById('milestoneModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMilestoneModal();
+            }
+        });
+
+        loadMilestones();
+    </script>
+</body>
+</html>
+

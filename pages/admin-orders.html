@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Admin Panel</a></div>
+            <ul>
+                <li><a href="admin-dashboard.html">Dashboard</a></li>
+                <li><a href="admin-orders.html">Orders</a></li>
+                <li><a href="admin-partners.html">Partners</a></li>
+                <li><a href="admin-rewards.html">Rewards</a></li>
+                <li><a href="admin-invoices.html">Invoices</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Order Management</h1>
+        
+        <div class="card" style="margin-bottom: 1rem;">
+            <div class="d-flex gap-2">
+                <select id="statusFilter" onchange="loadOrders()" style="padding: 0.5rem; min-width: 200px;">
+                    <option value="">All Status</option>
+                    <option value="New">New</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <select id="partnerFilter" onchange="loadOrders()" style="padding: 0.5rem; min-width: 200px;">
+                    <option value="">All Partners</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Partner</th>
+                        <th>Date</th>
+                        <th>Site Address</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTable">
+                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div id="statusModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 8px; min-width: 300px;">
+            <h3>Update Order Status</h3>
+            <select id="newStatus" style="width: 100%; padding: 0.75rem; margin: 1rem 0;">
+                <option value="New">New</option>
+                <option value="Processing">Processing</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+            <div class="d-flex gap-2" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="updateOrderStatus()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!requireAuth('admin')) return;
+
+        let selectedOrderId = null;
+
+        function loadPartners() {
+            const partners = localStorageService.getUsers().filter(u => u.role === 'partner');
+            const select = document.getElementById('partnerFilter');
+            partners.forEach(partner => {
+                const option = document.createElement('option');
+                option.value = partner._id;
+                option.textContent = partner.companyName;
+                select.appendChild(option);
+            });
+        }
+
+        function loadOrders() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const partnerFilter = document.getElementById('partnerFilter').value;
+            
+            let orders = localStorageService.getOrders();
+            
+            if (statusFilter) {
+                orders = orders.filter(o => o.status === statusFilter);
+            }
+            if (partnerFilter) {
+                orders = orders.filter(o => o.partnerId === partnerFilter);
+            }
+
+            orders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const tbody = document.getElementById('ordersTable');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No orders found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => {
+                const partner = localStorageService.getUser(order.partnerId);
+                const statusClass = {
+                    'New': 'badge-info',
+                    'Processing': 'badge-warning',
+                    'Delivered': 'badge-success',
+                    'Cancelled': 'badge-danger'
+                }[order.status] || 'badge-secondary';
+
+                return `
+                    <tr>
+                        <td>${order._id.slice(-8)}</td>
+                        <td>${partner ? partner.companyName : 'N/A'}</td>
+                        <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td>${order.projectSiteAddress}</td>
+                        <td><span class="badge ${statusClass}">${order.status}</span></td>
+                        <td>₹${order.totalAmount.toLocaleString('en-IN')}</td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" 
+                                    onclick="openStatusModal('${order._id}', '${order.status}')">Update Status</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openStatusModal(orderId, currentStatus) {
+            selectedOrderId = orderId;
+            document.getElementById('newStatus').value = currentStatus;
+            document.getElementById('statusModal').style.display = 'block';
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').style.display = 'none';
+            selectedOrderId = null;
+        }
+
+        function updateOrderStatus() {
+            if (!selectedOrderId) return;
+            const newStatus = document.getElementById('newStatus').value;
+            localStorageService.updateOrder(selectedOrderId, { status: newStatus });
+            closeStatusModal();
+            loadOrders();
+        }
+
+        // Close modal on outside click
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatusModal();
+            }
+        });
+
+        loadPartners();
+        loadOrders();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - B2B Platform</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo"><a href="../index.html" style="color: white; text-decoration: none;">Admin Panel</a></div>
+            <ul>
+                <li><a href="admin-dashboard.html">Dashboard</a></li>
+                <li><a href="admin-orders.html">Orders</a></li>
+                <li><a href="admin-partners.html">Partners</a></li>
+                <li><a href="admin-rewards.html">Rewards</a></li>
+                <li><a href="admin-invoices.html">Invoices</a></li>
+                <li><a href="../index.html">Public Site</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+
+        <div class="grid-3" style="margin: 2rem 0;">
+            <div class="card">
+                <h4 style="color: #666; margin-bottom: 0.5rem;">New Orders</h4>
+                <h2 id="newOrders">0</h2>
+            </div>
+            <div class="card">
+                <h4 style="color: #666; margin-bottom: 0.5rem;">Total Partners</h4>
+                <h2 id="totalPartners">0</h2>
+            </div>
+            <div class="card">
+                <h4 style="color: #666; margin-bottom: 0.5rem;">Total Revenue</h4>
+                <h2 id="totalRevenue">₹0</h2>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>Recent Orders</h3>
+                <div id="recentOrders">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Recent Notifications</h3>
+                <div id="recentNotifications">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/localStorageService.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!requireAuth('admin')) return;
+
+        function loadDashboard() {
+            const orders = localStorageService.getOrders();
+            const partners = localStorageService.getUsers().filter(u => u.role === 'partner' && u.isActive);
+            const invoices = localStorageService.getInvoices();
+            const paidInvoices = invoices.filter(i => i.isPaid);
+            const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+
+            document.getElementById('newOrders').textContent = orders.filter(o => o.status === 'New').length;
+            document.getElementById('totalPartners').textContent = partners.length;
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toLocaleString('en-IN')}`;
+
+            // Recent orders
+            const recentOrders = orders
+                .filter(o => o.status === 'New')
+                .slice(0, 5)
+                .map(o => {
+                    const partner = localStorageService.getUser(o.partnerId);
+                    return {
+                        ...o,
+                        partnerName: partner ? partner.companyName : 'Unknown'
+                    };
+                });
+
+            const ordersDiv = document.getElementById('recentOrders');
+            if (recentOrders.length === 0) {
+                ordersDiv.innerHTML = '<p style="color: #666;">No new orders</p>';
+            } else {
+                ordersDiv.innerHTML = recentOrders.map(order => `
+                    <div style="padding: 0.75rem; border-bottom: 1px solid #eee;">
+                        <strong>Order ${order._id.slice(-8)}</strong><br>
+                        <small style="color: #666;">${order.partnerName} - ${new Date(order.createdAt).toLocaleDateString()}</small>
+                        <span class="badge badge-info" style="float: right;">${order.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Recent notifications
+            const notifications = localStorageService.getNotifications()
+                .filter(n => !n.isRead)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+
+            const notifDiv = document.getElementById('recentNotifications');
+            if (notifications.length === 0) {
+                notifDiv.innerHTML = '<p style="color: #666;">No notifications</p>';
+            } else {
+                notifDiv.innerHTML = notifications.map(notif => `
+                    <div style="padding: 0.75rem; border-bottom: 1px solid #eee;">
+                        <p>${notif.message}</p>
+                        <small style="color: #666;">${new Date(notif.createdAt).toLocaleDateString()}</small>
+                        <span class="badge ${notif.type === 'reward_milestone' ? 'badge-success' : 'badge-info'}" style="float: right;">
+                            ${notif.type}
+                        </span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
+
